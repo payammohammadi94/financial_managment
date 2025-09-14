@@ -1,0 +1,132 @@
+{% extends "home/base.html" %}
+{% load static %}
+
+{% block title %}
+<title>RoadMap</title>       
+{% endblock title %}
+
+{% block body %}
+    <div class="timeline-container">
+        <div class="header-section">
+            <div class="header-center">
+                <h1>Road Map</h1>
+                <form method="get">
+                    <div class="dropdown-filters">
+                        <select class="dropdown-filter" name="project">
+                            <option>Project </option>
+                            {% for project in projects %}
+                                <option>{{project.name}}</option>
+                            {% endfor %}
+                        </select>
+                        <select class="dropdown-filter" name="year">
+                            <option>Year</option>
+                            {% for year in years %}
+                                <option>{{year.year}}</option>
+                            {% endfor %}
+                        </select>
+                        <select class="dropdown-filter" name="month">
+                            <option>Month</option>
+                            <option>1</option>
+                            <option>2</option>
+                            <option>3</option>
+                            <option>4</option>
+                            <option>5</option>
+                            <option>6</option>
+                            <option>7</option>
+                            <option>8</option>
+                            <option>9</option>
+                            <option>10</option>
+                            <option>11</option>
+                            <option>12</option>
+                        </select>
+                        <button class="search-button">
+                            Search
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        
+        <div class="letters-container">
+            {% for project in projects %}
+                <div class="letter-container">
+                    <span class="letter">{{project.name}}</span>
+                    <div style="display: flex; width: 100%; align-items: center;">
+                        {% for i in ""|rjust:project.number_of_step_until_end %}
+                        <div class="letter-seperator"></div>
+                        <span class="letter-step-dot {% if forloop.counter <= project.doing_step_project %}completed-step{% endif %}"></span>
+                        {% endfor %}                        
+                        <div class="letter-seperator"></div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+
+        
+        <div class="timeline-scroll">
+            <div class="timeline" id="timeline">
+                <!-- Milestone 1 -->
+                 {% for task in tasks %}
+                 
+                 <div class="milestone">
+                     <div class="milestone-title">{{task.project.name}}</div>
+                     <div class="milestone-date">
+                         <div class="milestone-day">{{task.deadline}}</div>
+                     </div>
+                     <div class="dashed-line">
+                        {% if task.task_status == "pending" %}
+                            <div class="task-description-pending">{{task.title}}</div>
+                        {% elif task.task_status == "complete"%}    
+                            <div class="task-description-complited">{{task.title}}</div>
+                        
+                        {% elif task.task_status == "faild"%}    
+                            <div class="task-description-faild">{{task.title}}</div>
+                        
+                        {% elif task.task_status == "stopProject"%}    
+                            <div class="task-description-stopProject">{{task.title}}</div>
+                        
+                        {% endif %}
+                        {% if task.isTaskMaster %}
+                            <span style="color:yellow;">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-exclamation-triangle-fill" viewBox="0 0 16 16">
+                                    <path d="M8.982 1.566a1.13 1.13 0 0 0-1.96 0L.165 13.233c-.457.778.091 1.767.98 1.767h13.713c.889 0 1.438-.99.98-1.767zM8 5c.535 0 .954.462.9.995l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 5.995A.905.905 0 0 1 8 5m.002 6a1 1 0 1 1 0 2 1 1 0 0 1 0-2"/>
+                                </svg>
+                            </span>
+                        {% endif %}
+                        </div>
+                     <div class="team-members">
+                         {% for pic_emploee in task.taskAssignment.all %}
+                            {% if pic_emploee.employee_status == "pending" %}
+                            <div class="member-avatar pending">
+                                <img src="{{pic_emploee.employee.photo.url}}" alt="Team Member">
+                            </div>
+
+                            {% elif pic_emploee.employee_status == "complete" %}
+                            <div class="member-avatar completed">
+                                <img src="{{pic_emploee.employee.photo.url}}" alt="Team Member">
+                            </div>
+
+                            {% elif pic_emploee.employee_status == "faild" %}
+                            <div class="member-avatar faild">
+                                <img src="{{pic_emploee.employee.photo.url}}" alt="Team Member">
+                            </div>
+
+                            {% elif pic_emploee.employee_status == "stopProject" %}
+                            <div class="member-avatar stop-project">
+                                <img src="{{pic_emploee.employee.photo.url}}" alt="Team Member">
+                            </div>
+
+                            {% endif %}
+                         {% endfor %}
+                     </div>
+                 </div>
+                 {% endfor %}
+            </div>
+        </div>
+        
+        <div class="month-display-container">
+            <div class="month-display">{{month_show_html}} - {{year_show_html}}</div>
+            <a href="/"><div class="month-display" style="margin:0 0 0 10px;cursor:pointer;">بازگشت</div></a>
+        </div>
+    </div>
+    {% endblock body %}

@@ -1,0 +1,295 @@
+{% extends "home/base-report.html" %}
+{% load static %}
+{% load home_extras %}
+
+{% block body %}
+<div class="main mt-4">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h2 class="text-center mb-4" style="font-weight: 300; color: #2c3e50;">گزارش آماری ماهانه</h2>
+            
+            <!-- Year Filter Form -->
+            <form method="get" class="mb-4">
+                <div class="row justify-content-center">
+                    <div class="col-md-3">
+                        <div class="form-group">
+                            <select name="year" id="year" class="form-control" onchange="this.form.submit()" style="border: none; border-bottom: 2px solid #e74c3c; border-radius: 0; box-shadow: none; background: linear-gradient(to right, #f8f9fa, #fff);">
+                                <option value="">انتخاب سال</option>
+                                {% for year in available_years %}
+                                <option value="{{ year.year }}" {% if selected_year == year.year|stringformat:"i" %}selected{% endif %}>
+                                    {{ year.year }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    {% if selected_year %}
+        <!-- Graphs Section -->
+        <div class="row mb-4">
+            <div class="col-md-4">
+                <div class="card" style="border: none; box-shadow: 0 2px 4px rgba(231, 76, 60, 0.1);">
+                    <div class="card-body">
+                        <h5 style="font-weight: 300; color: #34495e; margin-bottom: 15px;">مجموع کارها</h5>
+                        <canvas id="totalChart" height="200"></canvas>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card" style="border: none; box-shadow: 0 2px 4px rgba(231, 76, 60, 0.1);">
+                    <div class="card-body">
+                        <h5 style="font-weight: 300; color: #34495e; margin-bottom: 15px;">کارهای موفق</h5>
+                        <canvas id="successChart" height="200"></canvas>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card" style="border: none; box-shadow: 0 2px 4px rgba(231, 76, 60, 0.1);">
+                    <div class="card-body">
+                        <h5 style="font-weight: 300; color: #34495e; margin-bottom: 15px;">کارهای ناموفق</h5>
+                        <canvas id="failedChart" height="200"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Monthly Details -->
+        {% for year, year_data in stats.items %}
+            {% for month, month_stats in year_data.monthly_stats.items %}
+            <div class="card mb-4" style="border: none; box-shadow: 0 2px 4px rgba(231, 76, 60, 0.1);">
+                <div class="card-header" style="border-bottom: 1px solid rgba(231, 76, 60, 0.1); background: linear-gradient(to right, #fff, #f8f9fa);">
+                    <h3 style="font-weight: 300; color: #2c3e50; margin: 0;">{{ month_names|get_item:month }}</h3>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table" style="border: none;">
+                            <thead>
+                                <tr>
+                                    <th style="border: none; color: #7f8c8d; font-weight: 300; background: linear-gradient(to right, #fff, #f8f9fa);">در حال انجام</th>
+                                    <th style="border: none; color: #7f8c8d; font-weight: 300; background: linear-gradient(to right, #fff, #f8f9fa);">تکمیل شده</th>
+                                    <th style="border: none; color: #7f8c8d; font-weight: 300; background: linear-gradient(to right, #fff, #f8f9fa);">ناموفق</th>
+                                    <th style="border: none; color: #7f8c8d; font-weight: 300; background: linear-gradient(to right, #fff, #f8f9fa);">متوقف شده</th>
+                                    <th style="border: none; color: #7f8c8d; font-weight: 300; background: linear-gradient(to right, #fff, #f8f9fa);">مجموع</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td style="border: none; color: #e67e22;">{{ month_stats.pending }}</td>
+                                    <td style="border: none; color: #27ae60;">{{ month_stats.complete }}</td>
+                                    <td style="border: none; color: #e74c3c;">{{ month_stats.field }}</td>
+                                    <td style="border: none; color: #95a5a6;">{{ month_stats.stopProject }}</td>
+                                    <td style="border: none; color: #2c3e50;">{{ month_stats.total }}</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        {% endfor %}
+    {% else %}
+        <div class="alert alert-info text-center" role="alert" style="background: linear-gradient(to right, #fff, #f8f9fa); border: none; color: #2c3e50;">
+            لطفاً یک سال را انتخاب کنید
+        </div>
+    {% endif %}
+    <a href="{% url 'home:teams' %}" class="back-button">
+        <span>بازگشت</span>
+    </a>
+</div>
+
+<!-- Add Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    {% if selected_year %}
+    // Get month names
+    const monthNames = [];
+    {% for month_num, month_name in month_names.items %}
+    monthNames.push('{{ month_name }}');
+    {% endfor %}
+    
+    // Get data for selected year
+    {% for year, year_data in stats.items %}
+    const totalData = {{ year_data.monthly_totals|safe }};
+    const successData = {{ year_data.monthly_success|safe }};
+    const failedData = {{ year_data.monthly_failed|safe }};
+    {% endfor %}
+    
+    // Total Tasks Chart
+    const totalCtx = document.getElementById('totalChart').getContext('2d');
+    new Chart(totalCtx, {
+        type: 'bar',
+        data: {
+            labels: monthNames,
+            datasets: [{
+                label: 'مجموع کارها',
+                data: totalData,
+                backgroundColor: 'rgba(52, 152, 219, 0.8)',
+                borderColor: '#3498db',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    display: false
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    grid: {
+                        color: 'rgba(0, 0, 0, 0.05)'
+                    }
+                },
+                x: {
+                    grid: {
+                        display: false
+                    }
+                }
+            }
+        }
+    });
+
+    // Success Tasks Chart
+    const successCtx = document.getElementById('successChart').getContext('2d');
+    new Chart(successCtx, {
+        type: 'bar',
+        data: {
+            labels: monthNames,
+            datasets: [{
+                label: 'کارهای موفق',
+                data: successData,
+                backgroundColor: 'rgba(39, 174, 96, 0.8)',
+                borderColor: '#27ae60',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    display: false
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    grid: {
+                        color: 'rgba(0, 0, 0, 0.05)'
+                    }
+                },
+                x: {
+                    grid: {
+                        display: false
+                    }
+                }
+            }
+        }
+    });
+
+    // Failed Tasks Chart
+    const failedCtx = document.getElementById('failedChart').getContext('2d');
+    new Chart(failedCtx, {
+        type: 'bar',
+        data: {
+            labels: monthNames,
+            datasets: [{
+                label: 'کارهای ناموفق',
+                data: failedData,
+                backgroundColor: 'rgba(231, 76, 60, 0.8)',
+                borderColor: '#e74c3c',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    display: false
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    grid: {
+                        color: 'rgba(0, 0, 0, 0.05)'
+                    }
+                },
+                x: {
+                    grid: {
+                        display: false
+                    }
+                }
+            }
+        }
+    });
+    {% endif %}
+});
+</script>
+
+<style>
+    * {
+        background-color: white;
+        margin: 0;
+        padding: 0;
+    }
+    body {
+        background-color: white;
+        direction: rtl;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    }
+    .card {
+        margin-bottom: 1rem;
+        background-color: white;
+        transition: all 0.3s ease;
+    }
+    .card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(231, 76, 60, 0.15);
+    }
+    .back-button {
+        position: fixed;
+        bottom: 2rem;
+        left: 2rem;
+        background: #194d37;
+        color: white;
+        padding: 1rem 2rem;
+        border-radius: 30px;
+        text-decoration: none;
+        box-shadow: 0 4px 6px rgba(231, 76, 60, 0.2);
+        transition: transform 0.3s ease;
+        z-index: 2;
+    }
+    .back-button span{
+
+        background: #194d37;
+        color: white;
+        z-index: 2;
+    }
+    .back-button:hover {
+        transform: translateY(-3px);
+    }
+    .table th, .table td {
+        text-align: center;
+        padding: 12px 8px;
+    }
+    .form-control:focus {
+        box-shadow: none;
+        border-color: #194d37;
+    }
+    select.form-control {
+        background-color: transparent;
+        text-align: center;
+    }
+    tr:hover {
+        background: linear-gradient(to right, #fff, #f8f9fa);
+    }
+</style>
+{% endblock %} 

@@ -1,0 +1,168 @@
+{% extends 'financial/base.html' %}
+
+{% block title %}تراکنش‌ها - مدیریت مالی{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h1 class="mb-4">
+            <i class="fas fa-list me-2"></i>
+            لیست تراکنش‌ها
+        </h1>
+    </div>
+</div>
+
+<!-- فیلترها -->
+<div class="filter-section">
+    <form method="get" class="row g-3">
+        <div class="col-md-3">
+            <label for="tag" class="form-label">تگ</label>
+            <select class="form-select" id="tag" name="tag">
+                <option value="">همه تگ‌ها</option>
+                {% for tag in tags %}
+                    <option value="{{ tag.id }}" {% if selected_tag == tag.id|stringformat:"s" %}selected{% endif %}>
+                        {{ tag.name }}
+                    </option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-md-3">
+            <label for="card" class="form-label">کارت بانکی</label>
+            <select class="form-select" id="card" name="card">
+                <option value="">همه کارت‌ها</option>
+                {% for card in cards %}
+                    <option value="{{ card.id }}" {% if selected_card == card.id|stringformat:"s" %}selected{% endif %}>
+                        {{ card.bank_name }} - {{ card.card_number }}
+                    </option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-md-2">
+            <label for="start_date" class="form-label">از تاریخ</label>
+            <input type="date" class="form-control" id="start_date" name="start_date" value="{{ start_date }}">
+        </div>
+        <div class="col-md-2">
+            <label for="end_date" class="form-label">تا تاریخ</label>
+            <input type="date" class="form-control" id="end_date" name="end_date" value="{{ end_date }}">
+        </div>
+        <div class="col-md-2">
+            <label class="form-label">&nbsp;</label>
+            <div class="d-grid">
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-search me-1"></i>
+                    فیلتر
+                </button>
+            </div>
+        </div>
+    </form>
+</div>
+
+<!-- جدول تراکنش‌ها -->
+<div class="card">
+    <div class="card-header">
+        <h5 class="mb-0">
+            <i class="fas fa-table me-2"></i>
+            تراکنش‌ها
+        </h5>
+    </div>
+    <div class="card-body">
+        {% if transactions %}
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>نوع</th>
+                            <th>مبلغ</th>
+                            <th>بابت</th>
+                            <th>تاریخ</th>
+                            <th>کارت بانکی</th>
+                            <th>تگ</th>
+                            <th>واریز کننده / برداشت کننده</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for transaction in transactions %}
+                            <tr>
+                                <td>
+                                    {% if transaction.type == 'deposit' %}
+                                        <span class="badge badge-deposit">
+                                            <i class="fas fa-arrow-up me-1"></i>
+                                            واریز
+                                        </span>
+                                    {% else %}
+                                        <span class="badge badge-withdrawal">
+                                            <i class="fas fa-arrow-down me-1"></i>
+                                            برداشت
+                                        </span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <strong class="{% if transaction.type == 'deposit' %}text-success{% else %}text-danger{% endif %}">
+                                        {{ transaction.amount|floatformat:0 }} تومان
+                                    </strong>
+                                </td>
+                                <td>{{ transaction.purpose }}</td>
+                                <td>{{ transaction.jalali_date }}</td>
+                                <td>{{ transaction.bank_card }}</td>
+                                <td>
+                                    {% if transaction.tag %}
+                                        <span class="badge" style="background-color: {{ transaction.tag.color }};">
+                                            {{ transaction.tag.name }}
+                                        </span>
+                                    {% else %}
+                                        <span class="badge bg-secondary">بدون تگ</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if transaction.depositor %}
+                                        {{ transaction.depositor }}
+                                    {% else %}
+                                        {{ transaction.withdrawer }}
+                                    {% endif %}
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- صفحه‌بندی -->
+            {% if page_obj.has_other_pages %}
+                <nav aria-label="صفحه‌بندی تراکنش‌ها">
+                    <ul class="pagination justify-content-center">
+                        {% if page_obj.has_previous %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page=1{% if selected_tag %}&tag={{ selected_tag }}{% endif %}{% if selected_card %}&card={{ selected_card }}{% endif %}{% if start_date %}&start_date={{ start_date }}{% endif %}{% if end_date %}&end_date={{ end_date }}{% endif %}">اول</a>
+                            </li>
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if selected_tag %}&tag={{ selected_tag }}{% endif %}{% if selected_card %}&card={{ selected_card }}{% endif %}{% if start_date %}&start_date={{ start_date }}{% endif %}{% if end_date %}&end_date={{ end_date }}{% endif %}">قبلی</a>
+                            </li>
+                        {% endif %}
+
+                        <li class="page-item active">
+                            <span class="page-link">
+                                صفحه {{ page_obj.number }} از {{ page_obj.paginator.num_pages }}
+                            </span>
+                        </li>
+
+                        {% if page_obj.has_next %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if selected_tag %}&tag={{ selected_tag }}{% endif %}{% if selected_card %}&card={{ selected_card }}{% endif %}{% if start_date %}&start_date={{ start_date }}{% endif %}{% if end_date %}&end_date={{ end_date }}{% endif %}">بعدی</a>
+                            </li>
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% if selected_tag %}&tag={{ selected_tag }}{% endif %}{% if selected_card %}&card={{ selected_card }}{% endif %}{% if start_date %}&start_date={{ start_date }}{% endif %}{% if end_date %}&end_date={{ end_date }}{% endif %}">آخر</a>
+                            </li>
+                        {% endif %}
+                    </ul>
+                </nav>
+            {% endif %}
+        {% else %}
+            <div class="text-center py-5">
+                <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
+                <h5 class="text-muted">هیچ تراکنشی یافت نشد</h5>
+                <p class="text-muted">با تغییر فیلترها دوباره تلاش کنید</p>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

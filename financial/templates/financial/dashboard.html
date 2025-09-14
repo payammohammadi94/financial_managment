@@ -1,0 +1,112 @@
+{% extends 'financial/base.html' %}
+
+{% block title %}داشبورد - مدیریت مالی{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h1 class="mb-4">
+            <i class="fas fa-tachometer-alt me-2"></i>
+            داشبورد مدیریت مالی
+        </h1>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <i class="fas fa-credit-card fa-2x text-primary mb-3"></i>
+                <h5 class="card-title">تعداد کارت‌ها</h5>
+                <h3 class="text-primary">{{ total_cards }}</h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <i class="fas fa-wallet fa-2x text-success mb-3"></i>
+                <h5 class="card-title">کل موجودی</h5>
+                <h3 class="text-success">{{ total_balance|floatformat:0 }} تومان</h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <i class="fas fa-arrow-up fa-2x text-info mb-3"></i>
+                <h5 class="card-title">کل واریزها</h5>
+                <h3 class="text-info">{{ total_deposits|floatformat:0 }} تومان</h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <i class="fas fa-arrow-down fa-2x text-danger mb-3"></i>
+                <h5 class="card-title">کل برداشت‌ها</h5>
+                <h3 class="text-danger">{{ total_withdrawals|floatformat:0 }} تومان</h3>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-chart-line me-2"></i>
+                    آمار کلی
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row text-center">
+                    <div class="col-6">
+                        <h6 class="text-muted">موجودی خالص</h6>
+                        <h4 class="{% if total_balance > 0 %}text-success{% else %}text-danger{% endif %}">
+                            {{ total_balance|floatformat:0 }} تومان
+                        </h4>
+                    </div>
+                    <div class="col-6">
+                        <h6 class="text-muted">تفاوت واریز و برداشت</h6>
+                        <h4 class="{% if total_deposits > total_withdrawals %}text-success{% else %}text-danger{% endif %}">
+                            {{ total_deposits|add:total_withdrawals|floatformat:0 }} تومان
+                        </h4>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-link me-2"></i>
+                    دسترسی سریع
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <a href="{% url 'financial:transactions' %}" class="btn btn-outline-primary">
+                        <i class="fas fa-list me-2"></i>
+                        مشاهده تراکنش‌ها
+                    </a>
+                    <a href="{% url 'financial:tag_summary' %}" class="btn btn-outline-info">
+                        <i class="fas fa-chart-pie me-2"></i>
+                        خلاصه بر اساس تگ
+                    </a>
+                    <a href="{% url 'financial:bank_cards' %}" class="btn btn-outline-success">
+                        <i class="fas fa-credit-card me-2"></i>
+                        کارت‌های بانکی
+                    </a>
+                    <a href="/admin/" class="btn btn-outline-secondary">
+                        <i class="fas fa-cog me-2"></i>
+                        پنل مدیریت
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,132 @@
+{% extends 'financial/base.html' %}
+
+{% block title %}کارت‌های بانکی - مدیریت مالی{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h1 class="mb-4">
+            <i class="fas fa-credit-card me-2"></i>
+            کارت‌های بانکی
+        </h1>
+    </div>
+</div>
+
+<!-- آمار کلی -->
+<div class="row mb-4">
+    <div class="col-md-6">
+        <div class="card text-center">
+            <div class="card-body">
+                <i class="fas fa-credit-card fa-2x text-primary mb-3"></i>
+                <h5 class="card-title">تعداد کارت‌ها</h5>
+                <h3 class="text-primary">{{ cards|length }}</h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card text-center">
+            <div class="card-body">
+                <i class="fas fa-wallet fa-2x text-success mb-3"></i>
+                <h5 class="card-title">کل موجودی</h5>
+                <h3 class="text-success">{{ total_balance|floatformat:0 }} تومان</h3>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- لیست کارت‌ها -->
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="mb-0">
+            <i class="fas fa-list me-2"></i>
+            لیست کارت‌های بانکی
+        </h5>
+        <a href="/admin/financial/bankcard/add/" class="btn btn-primary btn-sm">
+            <i class="fas fa-plus me-1"></i>
+            افزودن کارت جدید
+        </a>
+    </div>
+    <div class="card-body">
+        {% if cards %}
+            <div class="row">
+                {% for card in cards %}
+                    <div class="col-md-6 col-lg-4 mb-3">
+                        <div class="card h-100">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-start mb-3">
+                                    <h6 class="card-title mb-0">{{ card.bank_name }}</h6>
+                                    <span class="badge bg-primary">{{ card.card_number }}</span>
+                                </div>
+                                <div class="mb-3">
+                                    <h4 class="text-success mb-0">{{ card.balance|floatformat:0 }} تومان</h4>
+                                    <small class="text-muted">موجودی فعلی</small>
+                                </div>
+                                <div class="d-flex justify-content-between">
+                                    <small class="text-muted">
+                                        <i class="fas fa-calendar me-1"></i>
+                                        {{ card.get_jalali_created_at }}
+                                    </small>
+                                    <div>
+                                        <a href="/admin/financial/bankcard/{{ card.id }}/change/" class="btn btn-outline-primary btn-sm">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="text-center py-5">
+                <i class="fas fa-credit-card fa-3x text-muted mb-3"></i>
+                <h5 class="text-muted">هیچ کارت بانکی ثبت نشده است</h5>
+                <p class="text-muted">برای شروع، کارت بانکی جدیدی اضافه کنید</p>
+                <a href="/admin/financial/bankcard/add/" class="btn btn-primary">
+                    <i class="fas fa-plus me-2"></i>
+                    افزودن کارت بانکی
+                </a>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- راهنمای استفاده -->
+<div class="card mt-4">
+    <div class="card-header">
+        <h5 class="mb-0">
+            <i class="fas fa-info-circle me-2"></i>
+            راهنمای استفاده
+        </h5>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-6">
+                <h6>نحوه افزودن تراکنش:</h6>
+                <ul class="list-unstyled">
+                    <li><i class="fas fa-check text-success me-2"></i>واریز پول: موجودی کارت افزایش می‌یابد</li>
+                    <li><i class="fas fa-check text-success me-2"></i>برداشت پول: موجودی کارت کاهش می‌یابد</li>
+                    <li><i class="fas fa-check text-success me-2"></i>تگ‌ها برای دسته‌بندی تراکنش‌ها</li>
+                </ul>
+            </div>
+            <div class="col-md-6">
+                <h6>دسترسی سریع:</h6>
+                <div class="d-grid gap-2">
+                    <a href="/admin/financial/deposit/add/" class="btn btn-outline-success btn-sm">
+                        <i class="fas fa-plus me-1"></i>
+                        افزودن واریز
+                    </a>
+                    <a href="/admin/financial/withdrawal/add/" class="btn btn-outline-danger btn-sm">
+                        <i class="fas fa-plus me-1"></i>
+                        افزودن برداشت
+                    </a>
+                    <a href="/admin/financial/tag/add/" class="btn btn-outline-info btn-sm">
+                        <i class="fas fa-plus me-1"></i>
+                        افزودن تگ
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
