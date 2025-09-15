@@ -9,3 +9,4 @@ urlpatterns = [
     path('tag-summary/', views.tag_summary, name='tag_summary'),
     path('bank-cards/', views.bank_cards_list, name='bank_cards'),
 ]
+
